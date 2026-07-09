@@ -1,6 +1,6 @@
 // common/util/IdempotencyUtil.java
 
-package com.locksave.common.util;
+package com.LockSaveApplication.common.util;
 
 import org.springframework.stereotype.Component;
 

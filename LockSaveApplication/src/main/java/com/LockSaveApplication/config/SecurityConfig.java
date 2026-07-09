@@ -40,13 +40,14 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex ->
                 ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/v1/auth/**",
-                    "/actuator/health"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
+           .authorizeHttpRequests(auth -> auth
+    .requestMatchers(
+        "/api/v1/auth/**",
+        "/api/v1/webhooks/**",
+        "/actuator/health"
+    ).permitAll()
+    .anyRequest().authenticated()
+)
             .headers(headers -> headers
                 .frameOptions(frame -> frame.deny())
                 .xssProtection(xss -> xss.disable()) // handled by filter

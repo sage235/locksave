@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/locksave}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    username: postgres
+    password: ramaclee
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -35,6 +35,36 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET}
-    access-token-expiry-ms: 900000    # 15 minutes
-    refresh-token-expiry-ms: 604800000 # 7 days
+    secret: locksave-super-secret-key-must-be-at-least-32-characters-long
+    access-token-expiry-ms: 900000
+    refresh-token-expiry-ms: 604800000
+
+    app:
+  payment:
+    mtn-momo:
+      base-url: ${MTN_BASE_URL:https://sandbox.momodeveloper.mtn.com}
+      subscription-key: ${MTN_SUBSCRIPTION_KEY}
+      api-user: ${MTN_API_USER}
+      api-key: ${MTN_API_KEY}
+      target-environment: ${MTN_ENVIRONMENT:sandbox}
+      callback-url: ${MTN_CALLBACK_URL}
+    airtel:
+      base-url: ${AIRTEL_BASE_URL:https://openapi.airtel.africa}
+      client-id: ${AIRTEL_CLIENT_ID}
+      client-secret: ${AIRTEL_CLIENT_SECRET}
+      callback-url: ${AIRTEL_CALLBACK_URL}
+    orange:
+      base-url: ${ORANGE_BASE_URL}
+      client-id: ${ORANGE_CLIENT_ID}
+      client-secret: ${ORANGE_CLIENT_SECRET}
+      callback-url: ${ORANGE_CALLBACK_URL}
+    webhook:
+      mtn-secret: ${MTN_WEBHOOK_SECRET}
+      airtel-secret: ${AIRTEL_WEBHOOK_SECRET}
+      orange-secret: ${ORANGE_WEBHOOK_SECRET}
+
+      app:
+  sms:
+    api-url: ${SMS_API_URL}
+    api-key: ${SMS_API_KEY}
+    sender-id: ${SMS_SENDER_ID:LockSave}
