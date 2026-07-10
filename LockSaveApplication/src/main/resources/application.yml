@@ -1,70 +1,206 @@
-spring:
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/locksave}
-    username: postgres
-    password: ramaclee
-    driver-class-name: org.postgresql.Driver
+# ============================================================
+#  LockSave – Base Configuration
+#  Shared across all profiles (dev, prod)
+#  Sensitive values are always injected via environment variables
+# ============================================================
 
+spring:
+
+  application:
+    name: locksave
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  # ── Database ────────────────────────────────────────────────
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/locksave_dev}
+    username: postgres
+    password: 
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      idle-timeout: 300000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+      pool-name: LockSaveHikariPool
+
+  # ── JPA ─────────────────────────────────────────────────────
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: validate        # Flyway owns the schema — JPA only validates
     show-sql: false
+    open-in-view: false         # Prevent lazy loading issues in controllers
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        format_sql: false
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
 
+  # ── Flyway ──────────────────────────────────────────────────
   flyway:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: false
+    validate-on-migrate: true
+    out-of-order: false
+    table: flyway_schema_history
 
+  # ── Redis ───────────────────────────────────────────────────
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 5000
+      lettuce:
+        pool:
+          min-idle: 1
+          max-idle: 5
+          max-active: 10
 
+  # ── Mail ────────────────────────────────────────────────────
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    host: ${MAIL_HOST:smtp.mailtrap.io}
+    port: ${MAIL_PORT:2525}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
+  # ── Jackson ─────────────────────────────────────────────────
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: UTC
+
+  # ── Async thread pool ────────────────────────────────────────
+  task:
+    execution:
+      pool:
+        core-size: 4
+        max-size: 10
+        queue-capacity: 50
+      thread-name-prefix: locksave-async-
+    scheduling:
+      pool:
+        size: 2
+      thread-name-prefix: locksave-scheduler-
+
+# ── Server ──────────────────────────────────────────────────────
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html
+    min-response-size: 1024
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+    whitelabel:
+      enabled: false
+
+# ── Actuator ────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: LockSave
+    description: Time-Locked Digital Savings Platform
+    version: 1.0.0
+
+# ── App custom properties ────────────────────────────────────────
 app:
-  jwt:
-    secret: locksave-super-secret-key-must-be-at-least-32-characters-long
-    access-token-expiry-ms: 900000
-    refresh-token-expiry-ms: 604800000
 
-    app:
+  # JWT
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-key-must-be-at-least-256-bits-long-locksave}
+    access-token-expiry-ms: ${JWT_ACCESS_EXPIRY:900000}      # 15 min default
+    refresh-token-expiry-ms: ${JWT_REFRESH_EXPIRY:604800000} # 7 days default
+
+  # Payment providers
   payment:
     mtn-momo:
       base-url: ${MTN_BASE_URL:https://sandbox.momodeveloper.mtn.com}
-      subscription-key: ${MTN_SUBSCRIPTION_KEY}
-      api-user: ${MTN_API_USER}
-      api-key: ${MTN_API_KEY}
+      subscription-key: ${MTN_SUBSCRIPTION_KEY:}
+      api-user: ${MTN_API_USER:}
+      api-key: ${MTN_API_KEY:}
       target-environment: ${MTN_ENVIRONMENT:sandbox}
-      callback-url: ${MTN_CALLBACK_URL}
+      callback-url: ${MTN_CALLBACK_URL:http://localhost:8080/api/v1/webhooks/mtn}
     airtel:
       base-url: ${AIRTEL_BASE_URL:https://openapi.airtel.africa}
-      client-id: ${AIRTEL_CLIENT_ID}
-      client-secret: ${AIRTEL_CLIENT_SECRET}
-      callback-url: ${AIRTEL_CALLBACK_URL}
+      client-id: ${AIRTEL_CLIENT_ID:}
+      client-secret: ${AIRTEL_CLIENT_SECRET:}
+      callback-url: ${AIRTEL_CALLBACK_URL:http://localhost:8080/api/v1/webhooks/airtel}
     orange:
-      base-url: ${ORANGE_BASE_URL}
-      client-id: ${ORANGE_CLIENT_ID}
-      client-secret: ${ORANGE_CLIENT_SECRET}
-      callback-url: ${ORANGE_CALLBACK_URL}
+      base-url: ${ORANGE_BASE_URL:https://api.orange.com}
+      client-id: ${ORANGE_CLIENT_ID:}
+      client-secret: ${ORANGE_CLIENT_SECRET:}
+      callback-url: ${ORANGE_CALLBACK_URL:http://localhost:8080/api/v1/webhooks/orange}
     webhook:
-      mtn-secret: ${MTN_WEBHOOK_SECRET}
-      airtel-secret: ${AIRTEL_WEBHOOK_SECRET}
-      orange-secret: ${ORANGE_WEBHOOK_SECRET}
+      mtn-secret: ${MTN_WEBHOOK_SECRET:dev-mtn-secret}
+      airtel-secret: ${AIRTEL_WEBHOOK_SECRET:dev-airtel-secret}
+      orange-secret: ${ORANGE_WEBHOOK_SECRET:dev-orange-secret}
 
-      app:
+  # SMS
   sms:
-    api-url: ${SMS_API_URL}
-    api-key: ${SMS_API_KEY}
+    api-url: ${SMS_API_URL:https://api.sandbox.smsprovider.com/send}
+    api-key: ${SMS_API_KEY:dev-sms-key}
     sender-id: ${SMS_SENDER_ID:LockSave}
+
+  # CORS — override in prod with real frontend origin
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
+
+# ── Logging ──────────────────────────────────────────────────────
+logging:
+  level:
+    root: INFO
+    com.LockSaveApplication: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    org.flywaydb: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+    spring:
+  jpa:
+    properties:
+      hibernate:
+        type:
+          preferred_uuid_jdbc_type: CHAR

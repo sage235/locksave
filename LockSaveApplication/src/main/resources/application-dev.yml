@@ -1,0 +1,76 @@
+# application-dev.yml
+# Active profile: run with -Dspring.profiles.active=dev
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/locksave_dev
+    username: postgres
+    password: postgres
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  mail:
+    host: smtp.mailtrap.io
+    port: 2525
+    username: ${MAILTRAP_USERNAME}
+    password: ${MAILTRAP_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+app:
+  jwt:
+    secret: dev-secret-key-must-be-at-least-256-bits-long-for-hmac-sha
+    access-token-expiry-ms: 3600000    # 1 hour in dev (relaxed for testing)
+    refresh-token-expiry-ms: 604800000 # 7 days
+
+  payment:
+    mtn-momo:
+      base-url: https://sandbox.momodeveloper.mtn.com
+      subscription-key: ${MTN_SUBSCRIPTION_KEY:dev-key}
+      api-user: ${MTN_API_USER:dev-user}
+      api-key: ${MTN_API_KEY:dev-api-key}
+      target-environment: sandbox
+      callback-url: http://localhost:8080/api/v1/webhooks/mtn
+    airtel:
+      base-url: https://openapi.airtel.africa
+      client-id: ${AIRTEL_CLIENT_ID:dev-client-id}
+      client-secret: ${AIRTEL_CLIENT_SECRET:dev-secret}
+      callback-url: http://localhost:8080/api/v1/webhooks/airtel
+    orange:
+      base-url: https://api.orange.com
+      client-id: ${ORANGE_CLIENT_ID:dev-client-id}
+      client-secret: ${ORANGE_CLIENT_SECRET:dev-secret}
+      callback-url: http://localhost:8080/api/v1/webhooks/orange
+    webhook:
+      mtn-secret: dev-mtn-webhook-secret
+      airtel-secret: dev-airtel-webhook-secret
+      orange-secret: dev-orange-webhook-secret
+
+  sms:
+    api-url: https://api.sandbox.smsprovider.com/send
+    api-key: dev-sms-key
+    sender-id: LockSave
+
+logging:
+  level:
+    com.LockSaveApplication: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+
+server:
+  port: 8080

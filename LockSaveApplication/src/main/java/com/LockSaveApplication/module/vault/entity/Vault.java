@@ -42,16 +42,17 @@ public class Vault {
     @Column(name = "goal_amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal goalAmount;
 
+    @Builder.Default
     @Column(name = "current_balance", nullable = false, precision = 15, scale = 2)
     private BigDecimal currentBalance = BigDecimal.ZERO;
 
     @Column(name = "unlock_date", nullable = false)
     private LocalDate unlockDate;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, columnDefinition = "vault_status")
     private VaultStatus status = VaultStatus.ACTIVE;
-
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

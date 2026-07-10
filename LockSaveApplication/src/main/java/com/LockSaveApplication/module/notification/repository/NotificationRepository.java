@@ -20,7 +20,12 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
     long countByUserIdAndIsReadFalse(UUID userId);
 
-    List<Notification> findByStatus(NotificationStatus status);
+    // Native query with explicit cast — fixes PostgreSQL enum vs varchar mismatch
+    @Query(value = """
+            SELECT * FROM notifications
+            WHERE status = CAST(:status AS notification_status)
+            """, nativeQuery = true)
+    List<Notification> findByStatusNative(@Param("status") String status);
 
     @Modifying
     @Query("UPDATE Notification n SET n.isRead = true WHERE n.user.id = :userId")

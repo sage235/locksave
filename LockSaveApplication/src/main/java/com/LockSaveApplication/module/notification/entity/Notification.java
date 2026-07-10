@@ -30,12 +30,14 @@ public class Notification {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // columnDefinition tells Hibernate to use the PostgreSQL
+    // native enum type instead of varchar — fixes the cast error
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, columnDefinition = "notification_type")
     private NotificationType type;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, columnDefinition = "notification_channel")
     private NotificationChannel channel;
 
     @Column(nullable = false, length = 150)
@@ -45,8 +47,8 @@ public class Notification {
     private String message;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private NotificationStatus status = NotificationStatus.PENDING;
+    @Column(nullable = false, columnDefinition = "notification_status")
+    private NotificationStatus status;
 
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;

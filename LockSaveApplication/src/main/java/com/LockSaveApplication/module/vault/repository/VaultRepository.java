@@ -25,12 +25,13 @@ public interface VaultRepository extends JpaRepository<Vault, UUID> {
 
     // Finds vaults whose unlock date has passed but status is still ACTIVE
     // — used by a scheduled job to flip them to UNLOCKED
-    @Query("""
-            SELECT v FROM Vault v
-            WHERE v.unlockDate <= :today
-            AND v.status = :status
-            """)
-    List<Vault> findVaultsDueForUnlock(
-            @Param("today") LocalDate today,
-            @Param("status") VaultStatus status);
-}
+ 
+@Query(value = """
+        SELECT * FROM vaults
+        WHERE unlock_date <= :today
+        AND status = CAST(:status AS vault_status)
+        """, nativeQuery = true)
+List<Vault> findVaultsDueForUnlock(
+        @Param("today") java.time.LocalDate today,
+        @Param("status") String active);
+        }

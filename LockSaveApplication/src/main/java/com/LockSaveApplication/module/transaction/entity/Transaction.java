@@ -33,20 +33,22 @@ public class Transaction {
     private Vault vault;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_type", nullable = false, length = 20)
+    @Column(name = "transaction_type", nullable = false,
+            columnDefinition = "transaction_type")
     private TransactionType transactionType;
 
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false, length = 20)
+    @Column(name = "payment_method", nullable = false,
+            columnDefinition = "payment_method")
     private PaymentMethod paymentMethod;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, columnDefinition = "transaction_status")
     private TransactionStatus status = TransactionStatus.PENDING;
-
     @Column(name = "transaction_reference", nullable = false, unique = true, length = 100)
     private String transactionReference;
 

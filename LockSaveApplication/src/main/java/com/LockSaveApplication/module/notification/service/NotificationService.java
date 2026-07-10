@@ -73,8 +73,8 @@ public class NotificationService {
         // notify users whose vault unlocks in exactly 3 days
         LocalDate targetDate = LocalDate.now().plusDays(3);
 
-        List<Vault> vaultsDueSoon = vaultRepository
-                .findVaultsDueForUnlock(targetDate, VaultStatus.ACTIVE);
+       List<Vault> vaultsDueSoon = vaultRepository
+        .findVaultsDueForUnlock(targetDate, VaultStatus.ACTIVE.name());
 
         vaultsDueSoon.forEach(vault -> {
             User user = vault.getUser();
@@ -131,30 +131,32 @@ public class NotificationService {
 
     // ── Retry failed notifications (runs every 30 minutes) ───────────────────
 
-    @Scheduled(fixedDelay = 1800000)
-    @Transactional
-    public void retryFailedNotifications() {
-        List<Notification> failed = notificationRepository
-                .findByStatus(NotificationStatus.FAILED);
+@Scheduled(fixedDelay = 1800000)
+@Transactional
+public void retryFailedNotifications() {
+    // Use native query with string parameter — avoids enum cast error
+    List<Notification> failed = notificationRepository
+            .findByStatusNative(NotificationStatus.FAILED.name());
 
-        failed.forEach(notification -> {
-            try {
-                dispatch(notification.getUser().getEmail(),
-                         notification.getUser().getPhoneNumber(),
-                         notification.getChannel(),
-                         notification.getTitle(),
-                         notification.getMessage());
+    failed.forEach(notification -> {
+        try {
+            dispatch(notification.getUser().getEmail(),
+                     notification.getUser().getPhoneNumber(),
+                     notification.getChannel(),
+                     notification.getTitle(),
+                     notification.getMessage());
 
-                notification.setStatus(NotificationStatus.SENT);
-                notification.setSentAt(LocalDateTime.now());
-                log.info("Retry succeeded for notification: {}", notification.getId());
-            } catch (Exception e) {
-                log.error("Retry failed for notification: {}", notification.getId());
-            }
-        });
+            notification.setStatus(NotificationStatus.SENT);
+            notification.setSentAt(LocalDateTime.now());
+            log.info("Retry succeeded for notification: {}", notification.getId());
+        } catch (Exception e) {
+            log.error("Retry failed for notification: {}", notification.getId());
+        }
+    });
 
-        notificationRepository.saveAll(failed);
-    }
+    notificationRepository.saveAll(failed);
+}
+
 
     // ── Internal helpers ──────────────────────────────────────────────────────
 

@@ -125,7 +125,8 @@ public class VaultService {
     @Transactional
     public void unlockDueVaults() {
         List<Vault> due = vaultRepository.findVaultsDueForUnlock(
-                LocalDate.now(), VaultStatus.ACTIVE);
+        LocalDate.now(), VaultStatus.ACTIVE.name()); // .name() → "ACTIVE"
+
 
         due.forEach(vault -> {
             vault.setStatus(VaultStatus.UNLOCKED);
@@ -149,4 +150,6 @@ public class VaultService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User", "email", email));
     }
+
+    
 }
