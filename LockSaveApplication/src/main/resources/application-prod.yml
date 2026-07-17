@@ -1,0 +1,112 @@
+# application-prod.yml
+# Active profile: run with -Dspring.profiles.active=prod
+# ALL sensitive values come from environment variables — never hardcoded here
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+    validate-on-migrate: true
+    out-of-order: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: true
+      timeout: 5000
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.ssl.trust: ${MAIL_HOST}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiry-ms: 900000     # 15 minutes in prod
+    refresh-token-expiry-ms: 604800000 # 7 days
+
+  payment:
+    mtn-momo:
+      base-url: ${MTN_BASE_URL}
+      subscription-key: ${MTN_SUBSCRIPTION_KEY}
+      api-user: ${MTN_API_USER}
+      api-key: ${MTN_API_KEY}
+      target-environment: production
+      callback-url: ${MTN_CALLBACK_URL}
+    airtel:
+      base-url: ${AIRTEL_BASE_URL}
+      client-id: ${AIRTEL_CLIENT_ID}
+      client-secret: ${AIRTEL_CLIENT_SECRET}
+      callback-url: ${AIRTEL_CALLBACK_URL}
+    orange:
+      base-url: ${ORANGE_BASE_URL}
+      client-id: ${ORANGE_CLIENT_ID}
+      client-secret: ${ORANGE_CLIENT_SECRET}
+      callback-url: ${ORANGE_CALLBACK_URL}
+    webhook:
+      mtn-secret: ${MTN_WEBHOOK_SECRET}
+      airtel-secret: ${AIRTEL_WEBHOOK_SECRET}
+      orange-secret: ${ORANGE_WEBHOOK_SECRET}
+
+  sms:
+    api-url: ${SMS_API_URL}
+    api-key: ${SMS_API_KEY}
+    sender-id: ${SMS_SENDER_ID:LockSave}
+
+logging:
+  level:
+    com.LockSaveApplication: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+  file:
+    name: /var/log/locksave/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+
+server:
+  port: ${PORT:8080}
+  ssl:
+    enabled: ${SSL_ENABLED:false}
+    key-store: ${SSL_KEYSTORE_PATH:}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:}
+  error:
+    include-message: never       # never expose internal error messages to client
+    include-stacktrace: never
+    include-binding-errors: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info    # only expose health in prod, never env or beans
+  endpoint:
+    health:
+      show-details: never

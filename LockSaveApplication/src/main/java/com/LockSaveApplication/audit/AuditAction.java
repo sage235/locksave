@@ -1,0 +1,19 @@
+// audit/AuditAction.java
+
+package com.LockSaveApplication.audit;
+
+public enum AuditAction {
+    USER_REGISTERED,
+    USER_LOGIN,
+    USER_LOGIN_FAILED,
+    OTP_REQUESTED,
+    OTP_VERIFIED,
+    VAULT_CREATED,
+    VAULT_CLOSED,
+    DEPOSIT_INITIATED,
+    DEPOSIT_CONFIRMED,
+    WITHDRAWAL_INITIATED,
+    WITHDRAWAL_COMPLETED,
+    PROFILE_UPDATED,
+    PASSWORD_CHANGED
+}

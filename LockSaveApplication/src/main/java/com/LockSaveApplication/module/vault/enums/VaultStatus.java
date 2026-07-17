@@ -1,5 +1,9 @@
+// module/vault/enums/VaultStatus.java
+
 package com.LockSaveApplication.module.vault.enums;
 
-public class VaultStatus {
-
+public enum VaultStatus {
+    ACTIVE,
+    UNLOCKED,
+    CLOSED
 }
