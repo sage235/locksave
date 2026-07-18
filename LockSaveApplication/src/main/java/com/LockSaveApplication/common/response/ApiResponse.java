@@ -30,7 +30,6 @@ public class ApiResponse<T> {
     }
 
 
-
     
     public static <T> ApiResponse<T> failure(String message) {
         return new ApiResponse<>(false, message, null);
