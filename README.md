@@ -1,2 +1,2 @@
-d# locksave
+# locksave
 Testing the GitHub YOLO achievement.
